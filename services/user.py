@@ -22,7 +22,11 @@ def get_users(db):
     users = db.execute(select(User)).scalars().all()
     return users
 
-
+def get_user_by_id(user_id, db):
+    user = db.execute(
+                select(User).where(User.id == user_id)
+                    ).scalars().first()
+    return user
 
 
     
