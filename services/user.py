@@ -41,4 +41,18 @@ def update_user(user_id, user_data, db):
     db.commit()
     db.refresh(user)
     return user
+
+def delete_user(user_id, db):
+    user = get_user_by_id(user_id, db)
+
+    if user is None:
+        return None
     
+    db.delete(user)
+    db.commit()
+
+    return user
+
+
+
+  

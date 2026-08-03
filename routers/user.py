@@ -7,6 +7,7 @@ from services.user import (
     get_users, 
     get_user_by_id,
     update_user,
+    delete_user
 )
 router = APIRouter()
 
@@ -38,12 +39,23 @@ def get_user_endpoint(user_id: int, db = Depends(get_db)):
 @router.patch("/user/{user_id}", response_model=UserResponse)
 def change_user_endpoint(user_id: int,user_data: UserUpdate,  db = Depends(get_db)):
     user = update_user(user_id, user_data, db)
-    
+
     if user is None:
         raise HTTPException(
             status_code = 404,
             detail = "User not found"
         )
 
+    return user
+
+@router.delete("/user/{user_id}")
+def delete_user_endpint(user_id: int, db = Depends(get_db)):
+    user = delete_user(user_id, db)
+
+    if user is None:
+        raise HTTPException(
+            status_code = 404,
+            detail = "User not found"
+        )
     return user
 
