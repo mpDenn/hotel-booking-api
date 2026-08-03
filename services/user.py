@@ -28,5 +28,17 @@ def get_user_by_id(user_id, db):
                     ).scalars().first()
     return user
 
+def update_user(user_id, user_data, db):
+    user = get_user_by_id(user_id, db)
 
+    if user is None:
+        return None
+
+    data = user_data.model_dump(exclude_unset=True)
+    for field, value in data.items():
+        setattr(user, field, value)
+
+    db.commit()
+    db.refresh(user)
+    return user
     

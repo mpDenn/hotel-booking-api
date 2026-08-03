@@ -1,4 +1,4 @@
-from schemas.user import UserCreate, UserResponse
+from schemas.user import UserCreate, UserResponse, UserUpdate 
 from services.user import usercreate
 from fastapi import APIRouter, Depends
 from database import get_db
@@ -6,6 +6,7 @@ from fastapi import HTTPException
 from services.user import (
     get_users, 
     get_user_by_id,
+    update_user,
 )
 router = APIRouter()
 
@@ -34,4 +35,15 @@ def get_user_endpoint(user_id: int, db = Depends(get_db)):
     
     return user
 
+@router.patch("/user/{user_id}", response_model=UserResponse)
+def change_user_endpoint(user_id: int,user_data: UserUpdate,  db = Depends(get_db)):
+    user = update_user(user_id, user_data, db)
+    
+    if user is None:
+        raise HTTPException(
+            status_code = 404,
+            detail = "User not found"
+        )
+
+    return user
 
