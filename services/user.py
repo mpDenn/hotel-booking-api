@@ -1,5 +1,6 @@
 from schemas.user import UserCreate
 from models.user import User
+from sqlalchemy import select
 
 def usercreate(user: UserCreate, db):
 
@@ -16,4 +17,12 @@ def usercreate(user: UserCreate, db):
     db.refresh(new_user)
 
     return new_user
+
+def get_users(db):
+    users = db.execute(select(User)).scalars().all()
+    return users
+
+
+
+
     
