@@ -52,7 +52,3 @@ def delete_user(user_id, db):
     db.commit()
 
     return user
-
-
-
-  
