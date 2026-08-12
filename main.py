@@ -1,13 +1,13 @@
 from fastapi import FastAPI
 app = FastAPI()
-from routers import user, room
+from routers import user, room, booking
+from database import Base, engine
+Base.metadata.create_all(bind=engine)
+
 app.include_router(user.router)
 app.include_router(room.router)
-from database import Base, engine
-from models.user import User
-from models.rooms import Room
+app.include_router(booking.router)
 
-Base.metadata.create_all(bind=engine)
 
 
 
