@@ -1,6 +1,6 @@
 from schemas.booking import BookingReasponse, BookingCreate, BookingPatch
 from models.booking import Booking
-
+from sqlalchemy import select
 from services.user import get_user_by_id
 from services.rooms import get_room_id
 
@@ -27,16 +27,19 @@ def booking_create(booking_data: BookingCreate, db):
     check_out = booking_data.check_out
     guests = booking_data.guests
 
+    
+
+
     if check_in >= check_out:
-        return None
+        return "wrong_data"
 
     if guests > guests_max:
-        return None
+        return "too_many_guests"
     
     booking_conflict = has_booking_conflict(booking_data.room_id, check_in, check_out, db)
 
     if booking_conflict:
-        return None
+        return "booking_conflict"
 
     new_booking = Booking(
         user_id = booking_data.user_id,
@@ -77,5 +80,14 @@ def booking_patch_time(booking_id: int,booking_data: BookingPatch, db):
     db.refresh(booking)
     return booking
     
+def delete_booking(booking_id, db):
+
+    booking = db.execute(select(Booking).where(Booking.id == booking_id)).scalars().first()
+    if booking is None:
+        return None
+    
+    db.delete(booking)
+    db.commit()
+    return booking
 
     
