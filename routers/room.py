@@ -26,7 +26,7 @@ def get_room_endpint(room_id: int , db = Depends(get_db)):
 def price_update_endpoint(room_id:int, room_data:RoomPriceUpdate, db = Depends(get_db)):
     room = update_room_price(room_id, room_data, db)
 
-    if room is None:
+    if room == "room_none":
         raise HTTPException(
                 status_code = 404,
                 detail = "Room not found"

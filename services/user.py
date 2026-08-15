@@ -32,7 +32,7 @@ def update_user(user_id, user_data, db):
     user = get_user_by_id(user_id, db)
 
     if user is None:
-        return None
+        return "User_none"
 
     data = user_data.model_dump(exclude_unset=True)
     for field, value in data.items():
@@ -46,7 +46,7 @@ def delete_user(user_id, db):
     user = get_user_by_id(user_id, db)
 
     if user is None:
-        return None
+        return "user_none"
     
     db.delete(user)
     db.commit()

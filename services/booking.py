@@ -9,9 +9,9 @@ def booking_create(booking_data: BookingCreate, db):
     room = get_room_id(booking_data.room_id, db)
 
     if user is None:
-        return None
+        return "user_none"
     if room is None:
-        return None
+        return "room_none"
 
     guests_max = room.max_capacity
     check_in = booking_data.check_in
@@ -53,7 +53,7 @@ def delete_booking(booking_id, db):
 
     booking = db.execute(select(Booking).where(Booking.id == booking_id)).scalars().first()
     if booking is None:
-        return None
+        return "booking_none"
     
     db.delete(booking)
     db.commit()

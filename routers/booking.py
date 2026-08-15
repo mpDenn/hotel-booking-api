@@ -25,6 +25,16 @@ def create_booking_endpoint(booking_data: BookingCreate, db = Depends(get_db)):
                 status_code = 409,
                 detail ="Room is already booked for these dates"
                 )
+    if booking == "user_none":
+            raise HTTPException(
+                status_code = 404,
+                detail ="User not found"
+                    )
+    if booking == "room_none":
+                raise HTTPException(
+                    status_code = 404,
+                    detail ="Room doesn't exist"
+                        )
 
     return booking
 

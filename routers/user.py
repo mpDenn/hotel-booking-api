@@ -40,7 +40,7 @@ def get_user_endpoint(user_id: int, db = Depends(get_db)):
 def change_user_endpoint(user_id: int,user_data: UserUpdate,  db = Depends(get_db)):
     user = update_user(user_id, user_data, db)
 
-    if user is None:
+    if user == "User_none":
         raise HTTPException(
             status_code = 404,
             detail = "User not found"
@@ -52,7 +52,7 @@ def change_user_endpoint(user_id: int,user_data: UserUpdate,  db = Depends(get_d
 def delete_user_endpint(user_id: int, db = Depends(get_db)):
     user = delete_user(user_id, db)
 
-    if user is None:
+    if user == "user_none":
         raise HTTPException(
             status_code = 404,
             detail = "User not found"
