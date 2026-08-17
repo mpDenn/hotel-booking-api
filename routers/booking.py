@@ -45,7 +45,6 @@ def get_user_bookings_endpint(user_id, db = Depends(get_db)):
 
     return user_bookings
 
-
 @router.delete("/booking/{booking_id}")
 def delete_booking_endpoint(booking_id, db = Depends(get_db)):
     booking = delete_booking(booking_id, db)

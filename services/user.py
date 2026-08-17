@@ -1,14 +1,17 @@
 from schemas.user import UserCreate
 from models.user import User
+from services.security import hash_password
 from sqlalchemy import select
+
 
 def usercreate(user: UserCreate, db):
 
+    hashed_password = hash_password(user.password)
     new_user = User(
         email = user.email,
         name = user.name,
         surname = user.surname,
-        password = user.password
+        password_hash = hashed_password
         
     )
 

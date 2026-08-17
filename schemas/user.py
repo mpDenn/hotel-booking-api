@@ -4,7 +4,7 @@ class UserCreate(BaseModel):
     email: str | None = None
     name: str | None = None
     surname: str | None = None
-    password: str | None = None
+    password: str 
 
 class UserResponse(BaseModel):
     id: int
