@@ -1,7 +1,12 @@
+from fastapi import Depends
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+bearer_scheme = HTTPBearer()
+from database import get_db
 from passlib.context import CryptContext
 from sqlalchemy import select
 from models.user import User
 import jwt
+from fastapi import HTTPException
 from datetime import datetime, timedelta, timezone
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
@@ -55,6 +60,39 @@ def create_access_token(user_id):
 
     return token
 
+def decode_access_token(token):
 
+    payload = jwt.decode(
+        token,
+        SECRET_KEY,
+        algorithms=[ALGORITHM]
+    )
 
+    user_payload = int(payload["sub"])
 
+    return user_payload
+
+def get_current_user(
+                credential: HTTPAuthorizationCredentials = Depends(bearer_scheme),
+                db = Depends(get_db)
+                    ):
+    token = credential.credentials
+
+    try:
+        user_id = decode_access_token(token)
+    except (jwt.InvalidTokenError, KeyError, ValueError) as error:
+        
+        raise HTTPException(
+                status_code=401,
+                detail="Invalid or expired token"
+                )       
+
+    user = db.execute(select(User).where(User.id == user_id)).scalars().first()
+
+    if user is None:
+        raise HTTPException(
+                status_code = 401,
+                detail = "Invalid authentication credentials"
+                )
+
+    return user

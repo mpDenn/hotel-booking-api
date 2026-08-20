@@ -3,6 +3,7 @@ from services.user import usercreate
 from fastapi import APIRouter, Depends
 from database import get_db
 from fastapi import HTTPException
+from services.security import get_current_user
 from services.user import (
     get_users, 
     get_user_by_id,
@@ -23,6 +24,10 @@ def get_users_endpoint(db = Depends(get_db)):
     users = get_users(db)
 
     return users
+
+@router.get("/me", response_model = UserResponse)
+def get_me(current_user = Depends(get_current_user)):
+    return current_user
 
 @router.get("/user/{user_id}", response_model = UserResponse)
 def get_user_endpoint(user_id: int, db = Depends(get_db)):
