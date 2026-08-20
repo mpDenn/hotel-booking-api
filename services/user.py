@@ -22,6 +22,7 @@ def usercreate(user: UserCreate, db):
     return new_user
 
 def get_users(db):
+    
     users = db.execute(select(User)).scalars().all()
     return users
 
