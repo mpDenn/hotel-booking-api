@@ -3,7 +3,7 @@ from services.user import usercreate
 from fastapi import APIRouter, Depends
 from database import get_db
 from fastapi import HTTPException
-from services.security import get_current_user
+from services.security import get_current_user, get_current_admin
 from services.user import (
     get_users, 
     get_user_by_id,
@@ -20,7 +20,7 @@ def create_user(user:UserCreate, db = Depends(get_db)):
     return new_user
 
 @router.get("/users", response_model = list[UserResponse])
-def get_users_endpoint(db = Depends(get_db)):
+def get_users_endpoint(current_admin = Depends(get_current_admin), db = Depends(get_db)):
     users = get_users(db)
 
     return users
@@ -30,7 +30,7 @@ def get_me(current_user = Depends(get_current_user)):
     return current_user
 
 @router.get("/user/{user_id}", response_model = UserResponse)
-def get_user_endpoint(user_id: int, db = Depends(get_db)):
+def get_user_endpoint(user_id: int,current_admin = Depends(get_current_admin), db = Depends(get_db)):
     user = get_user_by_id(user_id, db)
 
     if user is None:
@@ -42,7 +42,12 @@ def get_user_endpoint(user_id: int, db = Depends(get_db)):
     return user
 
 @router.patch("/user/{user_id}", response_model=UserResponse)
-def change_user_endpoint(user_id: int,user_data: UserUpdate,  db = Depends(get_db)):
+def change_user_endpoint(
+            user_id: int,
+            user_data: UserUpdate,
+            current_admin = Depends(get_current_admin),
+            db = Depends(get_db)):
+    
     user = update_user(user_id, user_data, db)
 
     if user == "User_none":
@@ -54,7 +59,12 @@ def change_user_endpoint(user_id: int,user_data: UserUpdate,  db = Depends(get_d
     return user
 
 @router.delete("/user/{user_id}")
-def delete_user_endpint(user_id: int, db = Depends(get_db)):
+def delete_user_endpint(
+        user_id: int,
+        current_admin = Depends(get_current_admin), 
+        db = Depends(get_db)
+        ):
+    
     user = delete_user(user_id, db)
 
     if user == "user_none":

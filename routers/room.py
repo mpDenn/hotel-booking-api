@@ -3,6 +3,7 @@ from services.rooms import get_rooms, get_room_id,update_room_price, create_room
 from fastapi import APIRouter, Depends
 from database import get_db
 from fastapi import HTTPException
+from services.security import get_current_admin
 router = APIRouter()
 
 @router.get("/rooms", response_model = list[RoomResponse])
@@ -23,7 +24,12 @@ def get_room_endpint(room_id: int , db = Depends(get_db)):
     return room
 
 @router.patch("/rooms/{room_id}", response_model = RoomResponse)
-def price_update_endpoint(room_id:int, room_data:RoomPriceUpdate, db = Depends(get_db)):
+def price_update_endpoint(
+                    room_id:int, 
+                    room_data:RoomPriceUpdate,
+                    current_admin = Depends(get_current_admin),  
+                    db = Depends(get_db)):
+
     room = update_room_price(room_id, room_data, db)
 
     if room == "room_none":
@@ -35,7 +41,10 @@ def price_update_endpoint(room_id:int, room_data:RoomPriceUpdate, db = Depends(g
     return room
 
 @router.post("/rooms", response_model = RoomResponse)
-def create_room_endpoint(room_data: RoomCreate, db = Depends(get_db)):
+def create_room_endpoint(
+                room_data: RoomCreate,
+                current_admin = Depends(get_current_admin), 
+                db = Depends(get_db)):
     room = create_room(room_data, db)
 
     return room
