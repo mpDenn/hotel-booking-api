@@ -24,6 +24,14 @@ def update_room_price(room_id, room_data, db):
 
 def create_room(room_data, db):
 
+    if room_data.base_capacity > room_data.max_capacity:
+        return "wrong_capacity"
+
+    room_num_repeat = db.execute(select(Room).where(Room.number == room_data.number)).scalars().first()
+
+    if room_num_repeat:
+        return "room_exist"
+    
     room = Room(
         number = room_data.number,
         room_type = room_data.room_type,

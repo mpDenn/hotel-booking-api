@@ -1,13 +1,13 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from datetime import date
 
 class BookingCreate(BaseModel):
-    room_id: int
+    room_id: int = Field(gt=0)
     check_in: date
     check_out: date
-    guests: int
+    guests: int = Field(gt=0)
 
-class BookingReasponse(BaseModel):
+class BookingResponse(BaseModel):
     id: int
     user_id: int
     room_id: int

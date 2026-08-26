@@ -1,4 +1,5 @@
-from schemas.booking import BookingReasponse, BookingCreate, BookingPatch
+from schemas.booking import BookingResponse, BookingCreate, BookingPatch
+from datetime import date
 from models.booking import Booking
 from sqlalchemy import select
 from services.user import get_user_by_id
@@ -9,6 +10,7 @@ def booking_create(booking_data: BookingCreate, db, current_user_id):
     if room is None:
         return "room_none"
 
+    
     guests_max = room.max_capacity
     check_in = booking_data.check_in
     check_out = booking_data.check_out
@@ -16,6 +18,10 @@ def booking_create(booking_data: BookingCreate, db, current_user_id):
 
     if check_in >= check_out:
         return "wrong_data"
+
+    today_data = date.today()
+    if check_in < today_data:
+        return "booking_in_past"
 
     if guests > guests_max:
         return "too_many_guests"
@@ -41,7 +47,7 @@ def booking_create(booking_data: BookingCreate, db, current_user_id):
 
 def get_user_bookings(user_id, db):
 
-    user_bookings = db.query(Booking).filter(Booking.user_id == user_id).all()
+    user_bookings = db.execute(select(Booking).where(Booking.user_id == user_id)).scalars().all()
 
     return user_bookings
   
@@ -67,6 +73,10 @@ def time_book_patch(booking_id, check_in, check_out, db, current_user_id):
     
     if db_time.user_id != current_user_id:
             return "forbidden"
+
+    today_data = date.today()
+    if check_in < today_data:
+        return "check_in_past"
 
     if check_in >= check_out:
         return "wrong_data"

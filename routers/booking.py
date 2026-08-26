@@ -1,4 +1,4 @@
-from schemas.booking import BookingReasponse, BookingCreate, BookingPatch
+from schemas.booking import BookingResponse, BookingCreate, BookingPatch
 from models.booking import Booking
 from services.booking import booking_create, get_user_bookings, delete_booking, time_book_patch
 from fastapi import APIRouter, Depends
@@ -14,6 +14,12 @@ def create_booking_endpoint(booking_data: BookingCreate,
                             ):
     booking = booking_create(booking_data, db, current_user.id)
     
+    if booking == "booking_in_past":
+        raise HTTPException(
+                status_code = 400,
+                detail ="Check-in date cannot be in the past"
+                ) 
+    
     if booking == "wrong_data":
         raise HTTPException(
                 status_code = 400,
@@ -23,7 +29,7 @@ def create_booking_endpoint(booking_data: BookingCreate,
     if booking == "too_many_guests":
             raise HTTPException(
                 status_code = 400,
-                detail ="A room cannot have more than 4 guests"
+                detail ="Number of guests exceeds room capacity"
                 )
     
     if booking == "booking_conflict":
@@ -40,7 +46,7 @@ def create_booking_endpoint(booking_data: BookingCreate,
 
     return booking
 
-@router.get("/booking/me", response_model = list[BookingReasponse])
+@router.get("/booking/me", response_model = list[BookingResponse])
 def get_my_booking_endpont(current_user = Depends(get_current_user), db = Depends(get_db)):
     user = get_user_bookings(current_user.id,db)
 
@@ -48,7 +54,7 @@ def get_my_booking_endpont(current_user = Depends(get_current_user), db = Depend
 
 @router.delete("/booking/{booking_id}")
 def delete_booking_endpoint(
-                    booking_id, 
+                    booking_id:int, 
                     db = Depends(get_db), 
                     current_user = Depends(get_current_user) 
                     ):
@@ -68,8 +74,9 @@ def delete_booking_endpoint(
     
     return booking
 
-@router.patch("/booking/{booking_id}", response_model = BookingReasponse)
-def time_book_patch_endpoint(booking_id,
+@router.patch("/booking/{booking_id}", response_model = BookingResponse)
+def time_book_patch_endpoint(
+                            booking_id: int,
                              booking_data: BookingPatch, 
                              db = Depends(get_db),
                              current_user = Depends(get_current_user)
@@ -82,6 +89,13 @@ def time_book_patch_endpoint(booking_id,
                     db,
                     current_user.id
                     )
+
+    if time == "check_in_past":
+        raise HTTPException(
+                status_code = 400,
+                detail ="Check-in date cannot be in the past"
+                ) 
+
 
     if time == "forbidden":
           raise HTTPException(status_code=403, detail="You cannot modify this booking")
