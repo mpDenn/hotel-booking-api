@@ -17,6 +17,12 @@ router = APIRouter()
 def create_user(user:UserCreate, db = Depends(get_db)):
     new_user = usercreate(user,db)
 
+    if new_user == "email_exist":
+        raise HTTPException(
+            status_code=409,
+            detail = "Email already exists"
+        )
+    
     return new_user
 
 @router.get("/users", response_model = list[UserResponse])
@@ -50,11 +56,35 @@ def change_user_endpoint(
     
     user = update_user(user_id, user_data, db)
 
+    if user == "name_cant_be_none":
+            raise HTTPException(
+                    status_code = 422,
+                    detail = "Name can't be none"
+                   )
+
+    if user == "surname_cant_be_none":
+                raise HTTPException(
+                        status_code = 422,
+                        detail = "Surname can't be none"
+                       )
+
+    if user == "email_cant_be_none":
+        raise HTTPException(
+                status_code = 422,
+                detail = "Email can't be none"
+               )
+
+    if user == "email_exist":
+        raise HTTPException(
+                status_code = 409,
+                detail = "Email already exists"
+            )
+    
     if user == "User_none":
         raise HTTPException(
-            status_code = 404,
-            detail = "User not found"
-        )
+                status_code = 404,
+                detail = "User not found"
+            )
 
     return user
 

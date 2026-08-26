@@ -47,4 +47,15 @@ def create_room_endpoint(
                 db = Depends(get_db)):
     room = create_room(room_data, db)
 
+    if room == "room_exist":
+        raise HTTPException(
+                status_code=409,
+                detail= "Room already exists"
+            )
+
+    if room == "wrong_capacity":
+        raise HTTPException(
+            status_code=400,
+            detail= "base capacity can't be bigger than max capacity"
+        )
     return room
