@@ -1,14 +1,14 @@
-from schemas.booking import BookingResponse, BookingCreate, BookingPatch
+from schemas.booking import BookingCreate
 from datetime import date
 from models.booking import Booking
 from sqlalchemy import select
-from services.user import get_user_by_id
 from services.rooms import get_room_id
+
 def booking_create(booking_data: BookingCreate, db, current_user_id):
 
     room = get_room_id(booking_data.room_id, db)
     if room is None:
-        return "room_none"
+        return "room_not_found"
 
     
     guests_max = room.max_capacity
@@ -26,7 +26,7 @@ def booking_create(booking_data: BookingCreate, db, current_user_id):
     if guests > guests_max:
         return "too_many_guests"
     
-    booking_conflict = book_time_conflict(booking_data.room_id, check_in, check_out, db)
+    booking_conflict = booking_time_conflict(booking_data.room_id, check_in, check_out, db)
 
     if booking_conflict:
         return "booking_conflict"
@@ -55,7 +55,7 @@ def delete_booking(booking_id, db, current_user):
 
     booking = db.execute(select(Booking).where(Booking.id == booking_id)).scalars().first()
     if booking is None:
-        return "booking_none"
+        return "booking_not_found"
 
     if booking.user_id != current_user:
         return "forbidden"
@@ -64,7 +64,7 @@ def delete_booking(booking_id, db, current_user):
     db.commit()
     return booking
 
-def time_book_patch(booking_id, check_in, check_out, db, current_user_id):
+def patch_booking_time(booking_id, check_in, check_out, db, current_user_id):
 
     db_time = db.execute(select(Booking). where(Booking.id == booking_id)).scalars().first()
 
@@ -82,9 +82,9 @@ def time_book_patch(booking_id, check_in, check_out, db, current_user_id):
         return "wrong_data"
     
     room_id = db_time.room_id
-    exeption_book_id = db_time.id
+    excption_booking_id = db_time.id
 
-    conflict = book_time_conflict(room_id, check_in, check_out, db, exeption_book_id)
+    conflict = booking_time_conflict(room_id, check_in, check_out, db, excption_booking_id)
 
     if conflict:
         return "booking_conflict"
@@ -98,11 +98,11 @@ def time_book_patch(booking_id, check_in, check_out, db, current_user_id):
     db.refresh(db_time)
     return db_time
 
-def book_time_conflict(room_id, check_in, check_out, db, exeption_book_id = None):
+def booking_time_conflict(room_id, check_in, check_out, db, excption_booking_id = None):
 
     booking = db.execute(select(Booking).where(
                                     Booking.room_id == room_id,
-                                    Booking.id !=exeption_book_id,
+                                    Booking.id !=excption_booking_id,
                                     Booking.check_in < check_out,
                                     Booking.check_out > check_in,
                                     )

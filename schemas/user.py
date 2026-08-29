@@ -2,16 +2,16 @@ from pydantic import BaseModel
 
 class UserCreate(BaseModel):
     email: str
-    name: str 
-    surname: str 
-    password: str 
+    name: str
+    surname: str
+    password: str
     phone: str | None = None
 
 class UserResponse(BaseModel):
     id: int
-    email: str | None = None
-    name: str | None = None
-    surname: str | None = None
+    email: str
+    name: str
+    surname: str
     phone: str | None = None
 
 class UserUpdate(BaseModel):

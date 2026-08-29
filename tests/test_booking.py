@@ -3,26 +3,11 @@ from main import app
 
 client = TestClient(app)
 
-def test_get_my_bookings():
-    response = client.post(
-        "/login",
-        json ={
-            "email":"jwt_test@test.com",
-            "password":"test12345",
-        }
-    )
+def test_get_my_bookings(auth_headers):
 
-    assert response.status_code == 200
-    
-    data = response.json()
-    token = data["access_token"]
-
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
     response = client.get(
         "/booking/me",
-        headers=headers
+        headers=auth_headers
     )
 
     assert response.status_code == 200
@@ -37,25 +22,11 @@ def test_get_my_bookings_without_token():
 
     assert response.status_code == 401
 
-def test_get_my_bookings_response_structure():
-    response = client.post(
-        "/login",
-        json={
-            "email": "jwt_test@test.com",
-            "password": "test12345"
-        }
-    )
-    assert response.status_code == 200
+def test_get_my_bookings_response_structure(auth_headers):
 
-    data = response.json()
-    token = data["access_token"]
-
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
     response = client.get(
         "/booking/me",
-        headers=headers
+        headers=auth_headers
     )
 
     assert response.status_code == 200
@@ -68,7 +39,7 @@ def test_get_my_bookings_response_structure():
         assert "room_id" in data[0]
         assert "check_in" in data[0]
         assert "check_out" in data[0]
-        
+
 def test_create_booking_without_token():
     response = client.post(
         "/booking",
@@ -82,28 +53,13 @@ def test_create_booking_without_token():
 
     assert response.status_code == 401
 
-def test_create_booking():
-    response = client.post(
-        "/login",
-        json={
-            "email": "jwt_test@test.com",
-            "password": "test12345"
-        }
-    )
-    assert response.status_code == 200
-
-    data = response.json()
-    token = data["access_token"]
-
-    headers = {
-        "Authorization": f"bearer {token}"
-    }
+def test_create_booking(auth_headers, test_room):
 
     response = client.post(
         "/booking",
-        headers=headers,
-        json={ 
-            "room_id": 1,
+        headers = auth_headers,
+        json={
+            "room_id": test_room,
             "check_in": "2099-01-10",
             "check_out": "2099-01-12",
             "guests": 2
@@ -116,41 +72,25 @@ def test_create_booking():
     data = response.json()
     booking_id = data["id"]
 
-  
-    assert data["room_id"] == 1
+
+    assert data["room_id"] == test_room
     assert data["guests"] == 2
     assert data["check_in"] == "2099-01-10"
     assert data["check_out"] == "2099-01-12"
 
     delete_response = client.delete(
         f"/booking/{booking_id}",
-        headers=headers
+        headers=auth_headers
     )
 
     assert delete_response.status_code == 200
 
-def test_create_booking_wrong_dates():
-    response = client.post(
-        "/login",
-        json = {
-            "email": "jwt_test@test.com",
-            "password": "test12345"
-        }
-    )
-    assert response.status_code == 200
-
-    data = response.json()
-    token = data["access_token"]
-
-    headers = {
-        "Authorization": f"Bearer {token}"
-    }
-
+def test_create_booking_wrong_dates(auth_headers,test_room):
     response = client.post(
         "/booking",
-        headers=headers,
-        json = {    
-            "room_id": 1,
+        headers=auth_headers,
+        json = {
+            "room_id": test_room,
             "check_in": "2099-05-15",
             "check_out": "2099-05-10",
             "guests": 1
@@ -158,27 +98,12 @@ def test_create_booking_wrong_dates():
     )
     assert response.status_code == 400
 
-def test_create_booking_invalid_guests_type():
-    response = client.post(
-            "/login",
-            json = {
-                "email": "jwt_test@test.com",
-                "password": "test12345"
-            }
-        )
-    assert response.status_code == 200
-
-    data = response.json()
-    token = data["access_token"]
-    
-    headers = {
-            "Authorization": f"Bearer {token}"
-        }
+def test_create_booking_invalid_guests_type(auth_headers,):
 
     response = client.post(
         "/booking",
-        headers=headers,
-        json = {    
+        headers=auth_headers,
+        json = {
                 "room_id": 1,
                 "check_in": "2099-05-10",
                 "check_out": "2099-05-15",
@@ -187,28 +112,13 @@ def test_create_booking_invalid_guests_type():
         )
     assert response.status_code == 422
 
-def test_create_booking_too_many_guests():
-    response = client.post(
-            "/login",
-            json = {
-                "email": "jwt_test@test.com",
-                "password": "test12345"
-            }
-        )
-    assert response.status_code == 200
-
-    data = response.json()
-    token = data["access_token"]
-    
-    headers = {
-            "Authorization": f"Bearer {token}"
-        }
+def test_create_booking_too_many_guests(auth_headers, test_room):
 
     response = client.post(
         "/booking",
-        headers=headers,
-        json = {    
-                "room_id": 1,
+        headers=auth_headers,
+        json = {
+                "room_id": test_room,
                 "check_in": "2099-05-10",
                 "check_out": "2099-05-15",
                 "guests": 999
@@ -216,25 +126,13 @@ def test_create_booking_too_many_guests():
         )
     assert response.status_code == 400
 
-def test_create_booking_conflict():
-    response = client.post(
-                "/login",
-                json = {
-                    "email": "jwt_test@test.com",
-                    "password": "test12345"
-                }
-            )
-    assert response.status_code == 200
-    data = response.json()
-    token = data["access_token"]
-    headers = {
-                "Authorization": f"Bearer {token}"
-            }
+def test_create_booking_conflict(auth_headers,test_room):
+
     response = client.post(
             "/booking",
-            headers=headers,
-            json = {    
-                "room_id": 1,
+            headers=auth_headers,
+            json = {
+                "room_id": test_room,
                 "check_in": "2099-07-12",
                 "check_out": "2099-07-14",
                 "guests": 1
@@ -246,9 +144,9 @@ def test_create_booking_conflict():
 
     response = client.post(
             "/booking",
-            headers=headers,
-            json = {    
-                "room_id": 1,
+            headers=auth_headers,
+            json = {
+                "room_id": test_room,
                 "check_in": "2099-07-12",
                 "check_out": "2099-07-14",
                 "guests": 1
@@ -259,55 +157,28 @@ def test_create_booking_conflict():
 
     delete_response = client.delete(
         f"/booking/{booking_id}",
-        headers=headers
+        headers=auth_headers
     )
 
     assert delete_response.status_code == 200
 
-def test_delete_booking_not_found():
-    response = client.post(
-                "/login",
-                json = {
-                    "email": "jwt_test@test.com",
-                    "password": "test12345"
-                }
-            )
-    assert response.status_code == 200
+def test_delete_booking_not_found(auth_headers):
 
-    data = response.json()
-    token = data["access_token"]
-    headers = {
-                "Authorization": f"Bearer {token}"
-            }
 
     response = client.delete(
         "/booking/99999",
-        headers = headers
+        headers = auth_headers
     )
 
     assert response.status_code == 404
 
-def test_delete_other_user_booking():
-    response = client.post(
-                    "/login",
-                    json = {
-                        "email": "jwt_test@test.com",
-                        "password": "test12345"
-                    }
-                )
-    assert response.status_code == 200
-    
-    data = response.json()
-    token = data["access_token"]
-    headers = {
-                    "Authorization": f"Bearer {token}"
-                }
-    
+def test_delete_other_user_booking(auth_headers, other_user_booking):
+
     response = client.delete(
-            "/booking/7",
-            headers = headers
+            f"/booking/{other_user_booking}",
+            headers = auth_headers
             )
-    
+
     assert response.status_code == 403
 
 

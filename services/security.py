@@ -1,6 +1,5 @@
 from fastapi import Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-bearer_scheme = HTTPBearer()
 from database import get_db
 from passlib.context import CryptContext
 from sqlalchemy import select
@@ -14,11 +13,13 @@ import os
 from dotenv import load_dotenv
 load_dotenv()
 SECRET_KEY = os.getenv("SECRET_KEY")
-
+bearer_scheme = HTTPBearer()
 pwd_context = CryptContext(
     schemes=["bcrypt"],
     deprecated="auto"
 )
+
+
 
 def hash_password(password):
     hashed_password = pwd_context.hash(password)

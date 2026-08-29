@@ -1,12 +1,11 @@
 from pydantic import BaseModel, Field
 from decimal import Decimal
 
-
 class RoomResponse(BaseModel):
     id: int
     number: int
     room_type: str
-    price: Decimal | None = None
+    price: Decimal
     base_capacity: int
     max_capacity: int
 
