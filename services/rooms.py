@@ -13,7 +13,7 @@ def update_room_price(room_id, room_data, db):
     room = get_room_id(room_id, db)
 
     if room is None:
-        return "room_none"
+        return "room_not_found"
 
     room.price = room_data.price
 

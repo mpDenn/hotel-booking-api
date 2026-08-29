@@ -32,7 +32,7 @@ def price_update_endpoint(
 
     room = update_room_price(room_id, room_data, db)
 
-    if room == "room_none":
+    if room == "room_not_found":
         raise HTTPException(
                 status_code = 404,
                 detail = "Room not found"

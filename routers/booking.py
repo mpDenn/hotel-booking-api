@@ -1,13 +1,12 @@
 from schemas.booking import BookingResponse, BookingCreate, BookingPatch
-from models.booking import Booking
-from services.booking import booking_create, get_user_bookings, delete_booking, time_book_patch
+from services.booking import booking_create, get_user_bookings, delete_booking, patch_booking_time
 from fastapi import APIRouter, Depends
 from database import get_db
 from fastapi import HTTPException
 from services.security import get_current_user
 router = APIRouter()
 
-@router.post("/booking")
+@router.post("/booking", response_model= BookingResponse)
 def create_booking_endpoint(booking_data: BookingCreate, 
                             db = Depends(get_db), 
                             current_user = Depends (get_current_user)
@@ -38,7 +37,7 @@ def create_booking_endpoint(booking_data: BookingCreate,
                 detail ="Room is already booked for these dates"
                 )
     
-    if booking == "room_none":
+    if booking == "room_not_found":
                 raise HTTPException(
                     status_code = 404,
                     detail ="Room doesn't exist"
@@ -47,7 +46,7 @@ def create_booking_endpoint(booking_data: BookingCreate,
     return booking
 
 @router.get("/booking/me", response_model = list[BookingResponse])
-def get_my_booking_endpont(current_user = Depends(get_current_user), db = Depends(get_db)):
+def get_my_booking_endpoint(current_user = Depends(get_current_user), db = Depends(get_db)):
     user = get_user_bookings(current_user.id,db)
 
     return user
@@ -61,7 +60,7 @@ def delete_booking_endpoint(
     
     booking = delete_booking(booking_id, db, current_user.id)
 
-    if booking == "booking_none":
+    if booking == "booking_not_found":
         raise HTTPException(
                     status_code = 404,
                     detail ="Booking not found"
@@ -82,7 +81,7 @@ def time_book_patch_endpoint(
                              current_user = Depends(get_current_user)
                              ):
     
-    time = time_book_patch(
+    time = patch_booking_time(
                     booking_id, 
                     booking_data.check_in, 
                     booking_data.check_out, 

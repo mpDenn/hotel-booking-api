@@ -4,7 +4,7 @@ from services.security import hash_password
 from sqlalchemy import select
 
 
-def usercreate(user: UserCreate, db):
+def create_new_user(user: UserCreate, db):
 
     email_check = db.execute(select(User).where(User.email == user.email)).scalars().first()
     if email_check:
@@ -39,7 +39,7 @@ def update_user(user_id, user_data, db):
     user = get_user_by_id(user_id, db)
 
     if user is None:
-        return "User_none"
+        return "user_not_found"
     
     data = user_data.model_dump(exclude_unset=True)
 

@@ -1,5 +1,5 @@
 from schemas.user import UserCreate, UserResponse, UserUpdate 
-from services.user import usercreate
+from services.user import create_new_user
 from fastapi import APIRouter, Depends
 from database import get_db
 from fastapi import HTTPException
@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.post("/users", response_model = UserResponse)
 def create_user(user:UserCreate, db = Depends(get_db)):
-    new_user = usercreate(user,db)
+    new_user = create_new_user(user,db)
 
     if new_user == "email_exist":
         raise HTTPException(
@@ -80,7 +80,7 @@ def change_user_endpoint(
                 detail = "Email already exists"
             )
     
-    if user == "User_none":
+    if user == "user_not_found":
         raise HTTPException(
                 status_code = 404,
                 detail = "User not found"
@@ -89,7 +89,7 @@ def change_user_endpoint(
     return user
 
 @router.delete("/user/{user_id}")
-def delete_user_endpint(
+def delete_user_endpoint(
         user_id: int,
         current_admin = Depends(get_current_admin), 
         db = Depends(get_db)
