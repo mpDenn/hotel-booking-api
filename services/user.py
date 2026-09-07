@@ -2,6 +2,7 @@ from schemas.user import UserCreate
 from models.user import User
 from services.security import hash_password
 from sqlalchemy import select
+from models.booking import Booking
 
 
 def create_new_user(user: UserCreate, db):
@@ -25,7 +26,7 @@ def create_new_user(user: UserCreate, db):
     return new_user
 
 def get_users(db):
-    
+
     users = db.execute(select(User)).scalars().all()
     return users
 
@@ -40,7 +41,7 @@ def update_user(user_id, user_data, db):
 
     if user is None:
         return "user_not_found"
-    
+
     data = user_data.model_dump(exclude_unset=True)
 
     if "name" in data and data["name"] is None:
@@ -62,7 +63,7 @@ def update_user(user_id, user_data, db):
 
     if password is not None:
         user.password_hash = hash_password(password)
-        
+
     for field, value in data.items():
         setattr(user, field, value)
 
@@ -75,7 +76,12 @@ def delete_user(user_id, db):
 
     if user is None:
         return "user_none"
-    
+
+    user_bookings = db.execute(select(Booking).where(Booking.user_id == user_id)).scalars().first()
+
+    if user_bookings:
+        return "user_has_bookings"
+
     db.delete(user)
     db.commit()
 
