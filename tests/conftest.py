@@ -1,6 +1,6 @@
 from fastapi.testclient import TestClient
 import pytest
-from database import SessionLocal
+from database import get_db, Base
 from models.rooms import Room
 from models.user import User
 from models.booking import Booking
@@ -9,9 +9,35 @@ from services.security import hash_password
 from uuid import uuid4
 from main import app
 client = TestClient(app)
+from sqlalchemy.orm import sessionmaker
+from sqlalchemy import create_engine
+from dotenv import load_dotenv
+from sqlalchemy import select
+import os
+load_dotenv()
 
-@pytest.fixature
-def auth_headers(test_user):   
+TEST_DATABASE_URL = os.getenv("TEST_DATABASE_URL")
+test_engine = create_engine(TEST_DATABASE_URL)
+TestSessionLocal = sessionmaker(bind=test_engine)
+
+def override_get_db():
+    db = TestSessionLocal()
+    try:
+        yield db
+
+    finally:
+        db.close()
+
+app.dependency_overrides[get_db] = override_get_db
+
+@pytest.fixture(scope="session", autouse=True)
+def setup_test_db():
+    Base.metadata.create_all(bind=test_engine)
+    yield
+    Base.metadata.drop_all(bind=test_engine)
+
+@pytest.fixture
+def auth_headers(test_user):
     response = client.post(
         "login",
         json = {
@@ -31,7 +57,7 @@ def auth_headers(test_user):
 
 @pytest.fixture
 def test_room():
-    db = SessionLocal()
+    db = TestSessionLocal()
 
     room = Room(
         number = uuid4().int % 1_000_000_000,
@@ -53,7 +79,7 @@ def test_room():
 
 @pytest.fixture
 def other_user_booking(test_room):
-    db = SessionLocal()
+    db = TestSessionLocal()
 
     user = User(
         email = f"test_{uuid4()}@test.com",
@@ -87,7 +113,7 @@ def other_user_booking(test_room):
 
 @pytest.fixture
 def test_user():
-    db = SessionLocal()
+    db = TestSessionLocal()
 
     user = User(
         email = f"test_{uuid4()}@test.com",
@@ -102,10 +128,60 @@ def test_user():
 
     yield {
         "email":user.email,
+        "password": "test12345",
+        "id": user.id
+    }
+
+    existing_user = db.execute(select(User).where(User.id == user.id)).scalars().first()
+
+    if existing_user:
+        db.delete(existing_user)
+        db.commit()
+
+    db.close()
+
+@pytest.fixture
+def test_admin():
+    db = TestSessionLocal()
+
+    admin = User(
+        email = f"test_{uuid4()}@test.com",
+        name = "test",
+        surname = "user",
+        password_hash = hash_password("test12345"),
+        role = "admin"
+    )
+
+    db.add(admin)
+    db.commit()
+    db.refresh(admin)
+
+    yield {
+        "email":admin.email,
         "password": "test12345"
     }
 
-    db.delete(user)
+    db.delete(admin)
     db.commit()
     db.close()
-        
+
+@pytest.fixture
+def admin_headers(test_admin):
+
+    response = client.post(
+        "/login",
+        json = {
+            "email": test_admin["email"],
+            "password": test_admin["password"]
+        }
+    )
+    assert response.status_code == 200
+
+    data = response.json()
+    token = data["access_token"]
+
+    header = {
+        "Authorization": f"Bearer {token}"
+        }
+    yield header
+
